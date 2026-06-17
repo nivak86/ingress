@@ -1,0 +1,12 @@
+# The cloudflared connector token lives only on the box, never in git.
+.env
+.env.*
+!.env.example
+
+# Local backups created during cutovers
+compose.yml.bak*
+Caddyfile.bak*
+
+# macOS junk
+.DS_Store
+._*

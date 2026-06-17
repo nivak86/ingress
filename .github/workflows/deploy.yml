@@ -1,0 +1,95 @@
+name: Deploy Ingress
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ingress-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy ingress to the kavinb box
+    runs-on: ubuntu-latest
+    env:
+      HETZNER_HOST: ${{ secrets.HETZNER_HOST }}
+      HETZNER_USER: ${{ secrets.HETZNER_USER }}
+    steps:
+      - name: Gate on secrets
+        id: gate
+        # Skip cleanly until the repo has its deploy secrets (OAuth + host).
+        run: echo "ready=${{ secrets.TS_OAUTH_CLIENT_ID != '' && secrets.HETZNER_HOST != '' }}" >> "$GITHUB_OUTPUT"
+
+      - name: Check out repository
+        if: steps.gate.outputs.ready == 'true'
+        uses: actions/checkout@v4
+
+      - name: Connect runner to Tailscale
+        # The box is zero-inbound: CI reaches it only over the tailnet. Non-expiring
+        # OAuth client (mints an ephemeral tag:ci node per run). SHA-pin the action
+        # + pin the CLI so a repointed tag can't run different code with our creds.
+        if: steps.gate.outputs.ready == 'true'
+        uses: tailscale/github-action@6cae46e2d796f265265cfcf628b72a32b4d7cade # v3
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+          version: '1.98.4'
+
+      - name: Verify tailnet path
+        if: steps.gate.outputs.ready == 'true'
+        run: |
+          tailscale status
+          tailscale ping --timeout=10s "$HETZNER_HOST"
+
+      - name: Install SSH key
+        if: steps.gate.outputs.ready == 'true'
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${{ secrets.HETZNER_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$HETZNER_HOST" >> ~/.ssh/known_hosts
+
+      - name: Upload ingress config
+        if: steps.gate.outputs.ready == 'true'
+        # No --delete: this is the front door; never risk removing the box's .env
+        # (TUNNEL_TOKEN) or local backups. .env* is excluded as belt-and-braces.
+        run: |
+          rsync -az \
+            -e "ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes" \
+            --exclude ".git/" \
+            --exclude ".github/" \
+            --exclude ".env" \
+            --exclude ".env.*" \
+            --exclude "*.bak*" \
+            --exclude ".DS_Store" \
+            --exclude "._*" \
+            compose.yml Caddyfile "$HETZNER_USER@$HETZNER_HOST:/opt/ingress/"
+
+      - name: Validate, recreate, verify
+        if: steps.gate.outputs.ready == 'true'
+        run: |
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes "$HETZNER_USER@$HETZNER_HOST" '
+            set -e
+            cd /opt/ingress
+            docker network inspect kavinb-public >/dev/null 2>&1 || docker network create kavinb-public
+            docker compose config -q
+            docker compose up -d
+            docker compose ps
+            # cloudflared must have live tunnel connections after the restart.
+            sleep 5
+            docker compose logs --tail=30 cloudflared | grep -q "Registered tunnel connection" \
+              || { echo "tunnel did not register" >&2; docker compose logs --tail=50 cloudflared >&2; exit 1; }
+            echo "ingress up; tunnel registered"
+          '
+
+      - name: Smoke test (perimeter)
+        if: steps.gate.outputs.ready == 'true'
+        # kavinb.com sits behind Cloudflare Access — anonymous gets 302 -> SSO.
+        # 200 or 302 both prove the tunnel + Access perimeter is alive.
+        run: |
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 https://kavinb.com/ || true)
+          echo "perimeter HTTP $code"
+          [ "$code" = "200" ] || [ "$code" = "302" ]

@@ -1,0 +1,34 @@
+name: ingress
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    networks:
+      - public
+  caddy:
+    image: caddy:2.10
+    restart: unless-stopped
+    # No host port publication: the box is zero-inbound. cloudflared reaches
+    # caddy over the kavinb-public docker network (http://caddy:80); the public
+    # IP exposes nothing on 80/443. (Removing ports here is the real close —
+    # docker-proxy bypasses ufw, so a ufw rule alone wouldn't shut these.)
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - public
+volumes:
+  caddy_data:
+    external: true
+    name: money_caddy_data
+  caddy_config:
+    external: true
+    name: money_caddy_config
+networks:
+  public:
+    external: true
+    name: kavinb-public
