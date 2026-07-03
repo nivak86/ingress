@@ -1,21 +1,74 @@
+# Keep automatic-HTTPS cert management, but never auto-redirect HTTP→HTTPS: the
+# public path below is HTTP-only on purpose (Cloudflare terminates TLS at the
+# edge and dials the tunnel to caddy:80). A redirect here would break it.
+{
+	auto_https disable_redirects
+}
+
+# ── Public path ─────────────────────────────────────────────────────────────
+# Reached only through the Cloudflare tunnel (cloudflared → caddy:80). Cloudflare
+# Access authenticates and injects Cf-Access-Authenticated-User-Email upstream.
 http://kavinb.com, http://www.kavinb.com {
-  encode zstd gzip
-  redir /money /money/ 308
-  redir /workout /workout/ 308
-  redir /health /health/ 308
-  handle_path /money/* {
-    reverse_proxy money_api:8000
-  }
-  handle_path /workout/api/* {
-    reverse_proxy workout_api:8000
-  }
-  handle_path /workout/* {
-    reverse_proxy workout_api:8000
-  }
-  handle_path /health/* {
-    reverse_proxy health_api:8000
-  }
-  handle {
-    respond "kavinb.com online. Money is at /money. Workout is at /workout. Health is at /health." 200
-  }
+	encode zstd gzip
+	redir /money /money/ 308
+	redir /workout /workout/ 308
+	redir /health /health/ 308
+	handle_path /money/* {
+		reverse_proxy money_api:8000
+	}
+	handle_path /workout/api/* {
+		reverse_proxy workout_api:8000
+	}
+	handle_path /workout/* {
+		reverse_proxy workout_api:8000
+	}
+	handle_path /health/* {
+		reverse_proxy health_api:8000
+	}
+	handle {
+		respond "kavinb.com online. Money is at /money. Workout is at /workout. Health is at /health." 200
+	}
+}
+
+# On the tailnet, this listener owns kavinb.com directly (split-DNS points the
+# name at the box's tailnet IP). Cloudflare is not in front here, so we assert
+# the authenticated identity ourselves. header_up SETS the value, replacing any
+# client-supplied copy, so it can't be spoofed. This site is only published on
+# the tailnet IP (see compose.yml), never on the public interface.
+(tailnet_identity) {
+	header_up Cf-Access-Authenticated-User-Email kavinb@me.com
+}
+
+# ── Tailnet path ────────────────────────────────────────────────────────────
+https://kavinb.com, https://www.kavinb.com {
+	tls {
+		dns cloudflare {env.CF_API_TOKEN}
+	}
+	encode zstd gzip
+	redir /money /money/ 308
+	redir /workout /workout/ 308
+	redir /health /health/ 308
+	handle_path /money/* {
+		reverse_proxy money_api:8000 {
+			import tailnet_identity
+		}
+	}
+	handle_path /workout/api/* {
+		reverse_proxy workout_api:8000 {
+			import tailnet_identity
+		}
+	}
+	handle_path /workout/* {
+		reverse_proxy workout_api:8000 {
+			import tailnet_identity
+		}
+	}
+	handle_path /health/* {
+		reverse_proxy health_api:8000 {
+			import tailnet_identity
+		}
+	}
+	handle {
+		respond "kavinb.com online (tailnet, auto-authenticated)." 200
+	}
 }

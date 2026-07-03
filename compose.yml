@@ -9,18 +9,41 @@ services:
     networks:
       - public
   caddy:
-    image: caddy:2.10
+    build: .
+    image: ingress-caddy-cf:2.10
     restart: unless-stopped
-    # No host port publication: the box is zero-inbound. cloudflared reaches
-    # caddy over the kavinb-public docker network (http://caddy:80); the public
-    # IP exposes nothing on 80/443. (Removing ports here is the real close —
-    # docker-proxy bypasses ufw, so a ufw rule alone wouldn't shut these.)
+    # Public path stays zero-inbound: cloudflared reaches caddy over the
+    # kavinb-public docker network (http://caddy:80); nothing is published on
+    # the public IP. The ONLY host port is 443 bound to the box's Tailscale IP,
+    # so the auto-login HTTPS door is reachable over the tailnet but invisible
+    # to the public internet.
+    environment:
+      - CF_API_TOKEN=${CF_API_TOKEN}
+    ports:
+      - "100.89.237.0:443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
     networks:
       - public
+  # Tiny authoritative resolver for the tailnet: answers kavinb.com (and any
+  # subdomain) with the box's Tailscale IP, so tailnet devices reach caddy
+  # directly. Tailscale split-DNS routes only kavinb.com queries here; it
+  # answers nothing else. Published on the tailnet IP only.
+  resolver:
+    image: 4km3/dnsmasq:2.90-r3
+    restart: unless-stopped
+    # Host networking so dnsmasq binds the tailnet IP directly on :53 — docker's
+    # port-proxy mishandles :53 on the Tailscale interface. Bound ONLY to the
+    # tailnet IP, so it never answers on the public interface.
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+    command: >-
+      -k --no-resolv --no-hosts --bind-interfaces
+      --listen-address=100.89.237.0
+      --address=/kavinb.com/100.89.237.0
 volumes:
   caddy_data:
     external: true
