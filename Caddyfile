@@ -13,6 +13,7 @@ http://kavinb.com, http://www.kavinb.com {
 	redir /money /money/ 308
 	redir /workout /workout/ 308
 	redir /health /health/ 308
+	redir /trade /trade/ 308
 	handle_path /money/* {
 		reverse_proxy money_api:8000
 	}
@@ -24,6 +25,9 @@ http://kavinb.com, http://www.kavinb.com {
 	}
 	handle_path /health/* {
 		reverse_proxy health_api:8000
+	}
+	handle_path /trade/* {
+		reverse_proxy trade_web:80
 	}
 	handle {
 		respond "kavinb.com online. Money is at /money. Workout is at /workout. Health is at /health." 200
@@ -48,6 +52,7 @@ https://kavinb.com, https://www.kavinb.com {
 	redir /money /money/ 308
 	redir /workout /workout/ 308
 	redir /health /health/ 308
+	redir /trade /trade/ 308
 	handle_path /money/* {
 		reverse_proxy money_api:8000 {
 			import tailnet_identity
@@ -67,6 +72,9 @@ https://kavinb.com, https://www.kavinb.com {
 		reverse_proxy health_api:8000 {
 			import tailnet_identity
 		}
+	}
+	handle_path /trade/* {
+		reverse_proxy trade_web:80
 	}
 	handle {
 		respond "kavinb.com online (tailnet, auto-authenticated)." 200
