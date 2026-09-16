@@ -64,9 +64,9 @@ a{color:var(--teal-dark)}
 .chip input:focus-visible+span{outline:3px solid #8FD0CC}
 .chips.maxed .chip input:not(:checked)+span{opacity:.45}
 .counter{font-size:13px;color:var(--muted);margin-top:8px}
-textarea,select,input[type=text],input[type=email]{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;font:inherit;font-size:16px;color:var(--ink);background:#fff}
+textarea,select,input[type=text],input[type=email],input[type=tel]{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;font:inherit;font-size:16px;color:var(--ink);background:#fff}
 textarea{min-height:88px;resize:vertical}
-textarea:focus,select:focus,input[type=text]:focus,input[type=email]:focus{outline:none;border-color:var(--teal)}
+textarea:focus,select:focus,input[type=text]:focus,input[type=email]:focus,input[type=tel]:focus{outline:none;border-color:var(--teal)}
 .q{margin-top:14px}
 .q:first-of-type{margin-top:0}
 .q .lbl{display:block;font-weight:600;margin-bottom:6px}
@@ -78,7 +78,8 @@ textarea:focus,select:focus,input[type=text]:focus,input[type=email]:focus{outli
 .item .rm{appearance:none;-webkit-appearance:none;border:1.5px solid var(--line);background:#fff;border-radius:10px;width:44px;height:46px;font-size:22px;line-height:1;color:var(--muted);cursor:pointer;flex:none;touch-action:manipulation}
 .addbtn{appearance:none;-webkit-appearance:none;border:1.5px dashed var(--teal);background:var(--teal-pale);color:var(--teal-dark);border-radius:10px;padding:10px 14px;font:inherit;font-size:15px;font-weight:600;cursor:pointer;touch-action:manipulation;margin-top:2px}
 .addbtn[hidden]{display:none}
-.two{display:grid;gap:8px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.two>*{height:48px;min-width:0}
 .submitbar{margin-top:6px}
 .btn{width:100%;appearance:none;border:0;border-radius:12px;background:var(--teal);color:#fff;font:inherit;font-size:17px;font-weight:700;padding:15px;cursor:pointer;touch-action:manipulation}
 .btn:hover{background:var(--teal-dark)}
@@ -103,7 +104,6 @@ textarea:focus,select:focus,input[type=text]:focus,input[type=email]:focus{outli
   .row .text{flex:1;min-width:0}
   .seg{width:400px;flex:none;margin-top:0}
   .seg.even{grid-template-columns:repeat(4,1fr)}
-  .two{grid-template-columns:1fr 1.4fr}
 }
 </style>
 </head>
@@ -167,18 +167,20 @@ textarea:focus,select:focus,input[type=text]:focus,input[type=email]:focus{outli
 
   <section class="card">
     <h2>About you</h2>
-    <p class="blurb">Optional. It helps us see whether an issue is estate-wide or specific to one block.</p>
     <div class="q">
       <span class="lbl" id="lblResident">I am</span>
       <div class="seg even" id="residentType" role="radiogroup" aria-labelledby="lblResident"></div>
     </div>
     <div class="q">
-      <label class="lbl" for="block">Block</label>
-      <select id="block">
-        <option value="">Prefer not to say</option>
-        <option>281</option><option>283</option><option>285</option><option>287</option><option>289</option>
-        <option>291</option><option>293</option><option>295</option><option>297</option>
-      </select>
+      <span class="lbl" id="lblBlockUnit">Block and unit</span>
+      <div class="two" aria-labelledby="lblBlockUnit">
+        <select id="block" aria-label="Block">
+          <option value="">Block</option>
+          <option>281</option><option>283</option><option>285</option><option>287</option><option>289</option>
+          <option>291</option><option>293</option><option>295</option><option>297</option>
+        </select>
+        <input type="text" id="unit" maxlength="20" autocomplete="off" placeholder="Unit number" aria-label="Unit number">
+      </div>
     </div>
     <div class="q">
       <span class="lbl" id="lblTenure">How long have you been at Oceanfront?</span>
@@ -186,10 +188,10 @@ textarea:focus,select:focus,input[type=text]:focus,input[type=email]:focus{outli
     </div>
     <div class="q">
       <span class="lbl">Want a reply about something you raised?</span>
-      <span class="hint">Leave your unit number and email. Leave them blank and your answers stay anonymous.</span>
+      <span class="hint">Leave your email and phone. Leave them blank and your answers stay anonymous.</span>
       <div class="two">
-        <input type="text" id="contactUnit" maxlength="40" autocomplete="off" placeholder="Unit number" aria-label="Unit number for follow-up">
         <input type="email" id="contactEmail" maxlength="120" autocomplete="email" placeholder="Email" aria-label="Email for follow-up">
+        <input type="tel" id="contactPhone" maxlength="30" autocomplete="tel" placeholder="Phone" aria-label="Phone for follow-up">
       </div>
     </div>
   </section>
@@ -285,7 +287,7 @@ var RESIDENT_TYPES = ['Owner, living here','Tenant','Owner, living elsewhere','P
 var TENURES = ['Under 1 year','1 to 3 years','3 to 10 years','Over 10 years'];
 
 var PRIO_MAX = 3;
-var state = {ratings:{}, notes:{}, priorities:[''], comms:[], workingWell:'', anythingElse:'', residentType:'', block:'', tenure:'', contactUnit:'', contactEmail:''};
+var state = {ratings:{}, notes:{}, priorities:[''], comms:[], workingWell:'', anythingElse:'', residentType:'', block:'', unit:'', tenure:'', contactEmail:'', contactPhone:''};
 
 /* ---------- helpers ---------- */
 function el(tag, attrs, children){
@@ -448,9 +450,10 @@ function buildPayload(){
   add('Anything else', state.anythingElse.trim());
   add('Resident type', state.residentType);
   add('Block', state.block);
+  add('Unit', state.unit.trim());
   add('Time at Oceanfront', state.tenure);
-  add('Follow-up unit', state.contactUnit.trim());
   add('Follow-up email', state.contactEmail.trim());
+  add('Follow-up phone', state.contactPhone.trim());
   add('Device', isMobile());
   add('Survey version', CONFIG.version);
   return {columns: columns, row: row};
@@ -503,8 +506,9 @@ function submit(){
   });
   bindText('workingWell', 'workingWell');
   bindText('anythingElse', 'anythingElse');
-  bindText('contactUnit', 'contactUnit');
+  bindText('unit', 'unit');
   bindText('contactEmail', 'contactEmail');
+  bindText('contactPhone', 'contactPhone');
   bindText('block', 'block');
   bindChoice('residentType', 'residentType', RESIDENT_TYPES);
   bindChoice('tenure', 'tenure', TENURES);
