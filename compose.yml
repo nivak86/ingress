@@ -23,6 +23,7 @@ services:
       - "100.89.237.0:443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./survey:/srv/survey:ro
       - caddy_data:/data
       - caddy_config:/config
     networks:

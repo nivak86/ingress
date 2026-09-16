@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Oceanfront Resident Survey 2026</title>
+<style>
+:root{
+  --navy:#17384E;--teal:#197A7A;--teal-dark:#116263;--teal-pale:#E4F1F0;--blue-pale:#EEF4F7;
+  --ink:#24343D;--muted:#5C6C74;--line:#CDD8DC;--alt:#F7F9FA;
+  --ok:#56707E;--attn:#B5541C;--attn-pale:#FBEEE4;--na:#8A979E;--radius:14px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:#F2F5F7;line-height:1.45;font-size:16px;border-top:6px solid var(--teal)}
+a{color:var(--teal-dark)}
+.progress{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.96);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);height:38px;display:flex;align-items:center;padding:0 16px;font-size:13px;color:var(--muted)}
+.progress .track{flex:1;height:6px;background:var(--blue-pale);border-radius:3px;margin-right:12px;overflow:hidden}
+.progress .bar{height:100%;width:0;background:var(--teal);transition:width .25s}
+.progress .ptext{white-space:nowrap;font-variant-numeric:tabular-nums}
+.wrap{max-width:760px;margin:0 auto;padding:16px 14px 56px}
+.hero{background:var(--navy);color:#fff;border-radius:var(--radius);padding:22px 20px 18px;margin-bottom:14px}
+.hero .eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#BFE3E0;font-weight:700}
+.hero h1{margin:4px 0 14px;font-size:28px;line-height:1.15}
+.hero p{margin:0 0 12px;color:#DCE7EC;font-size:15.5px}
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:5px 11px;font-size:13px;color:#fff}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+.card h2{margin:0 0 4px;font-size:18px;color:var(--navy)}
+.card .blurb{margin:0 0 10px;color:var(--muted);font-size:14.5px}
+.legend{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.legend .lg{border-radius:10px;padding:9px 11px;font-size:13.5px;line-height:1.3;border:1px solid var(--line);background:var(--alt)}
+.legend .lg b{display:block;font-size:14px}
+.lg.great b{color:var(--teal-dark)}
+.lg.ok b{color:var(--ok)}
+.lg.attn b{color:var(--attn)}
+.lg.na b{color:var(--na)}
+.row{padding:12px 0;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0;padding-top:4px}
+.row .main{display:block}
+.row .text{display:block}
+.row .lbl{display:block;font-weight:600;font-size:16px}
+.row .hint{display:block;color:var(--muted);font-size:13.5px;margin-top:1px}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:9px}
+.seg.even{grid-template-columns:repeat(2,1fr)}
+.seg button{appearance:none;-webkit-appearance:none;border:1.5px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:4px 5px;font:inherit;font-size:14px;line-height:1.2;height:50px;display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;touch-action:manipulation;transition:background .12s,border-color .12s,color .12s}
+.seg button:hover{border-color:#9FB3BA;background:var(--alt)}
+.seg button:focus-visible{outline:3px solid #8FD0CC;outline-offset:1px}
+.seg button[aria-checked="true"]{color:#fff;font-weight:600}
+.seg button[aria-checked="true"].great{background:var(--teal);border-color:var(--teal)}
+.seg button[aria-checked="true"].ok{background:var(--ok);border-color:var(--ok)}
+.seg button[aria-checked="true"].attn{background:var(--attn);border-color:var(--attn)}
+.seg button[aria-checked="true"].na{background:var(--na);border-color:var(--na)}
+.note{margin-top:8px;display:none}
+.note.show{display:block}
+.note input{width:100%;border:1.5px solid #E7C9B4;background:var(--attn-pale);border-radius:10px;padding:10px 12px;font:inherit;font-size:15px;color:var(--ink)}
+.note input:focus{outline:none;border-color:var(--attn)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.chip{position:relative}
+.chip input{position:absolute;opacity:0;width:1px;height:1px}
+.chip span{display:inline-block;border:1.5px solid var(--line);border-radius:999px;padding:9px 14px;font-size:14.5px;line-height:1.2;background:#fff;cursor:pointer;user-select:none;touch-action:manipulation;transition:background .12s,border-color .12s}
+.chip input:checked+span{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:600}
+.chip input:focus-visible+span{outline:3px solid #8FD0CC}
+.chips.maxed .chip input:not(:checked)+span{opacity:.45}
+.counter{font-size:13px;color:var(--muted);margin-top:8px}
+textarea,select,input[type=text],input[type=email]{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;font:inherit;font-size:16px;color:var(--ink);background:#fff}
+textarea{min-height:88px;resize:vertical}
+textarea:focus,select:focus,input[type=text]:focus,input[type=email]:focus{outline:none;border-color:var(--teal)}
+.q{margin-top:14px}
+.q:first-of-type{margin-top:0}
+.q .lbl{display:block;font-weight:600;margin-bottom:6px}
+.q .hint{display:block;color:var(--muted);font-size:13.5px;margin:-4px 0 6px}
+.q .seg{margin-top:0}
+.submitbar{margin-top:6px}
+.btn{width:100%;appearance:none;border:0;border-radius:12px;background:var(--teal);color:#fff;font:inherit;font-size:17px;font-weight:700;padding:15px;cursor:pointer;touch-action:manipulation}
+.btn:hover{background:var(--teal-dark)}
+.btn[disabled]{opacity:.6;cursor:default}
+.fine{font-size:13px;color:var(--muted);text-align:center;margin-top:10px}
+.err{display:none;background:var(--attn-pale);border:1px solid #E7C9B4;color:#7A3A11;border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:14.5px}
+.err.show{display:block}
+.thanks{max-width:640px;margin:0 auto;padding:30px 16px}
+.thanks .card{padding:24px 20px}
+.thanks h1{margin:0 0 8px;color:var(--navy);font-size:26px}
+.thanks p{margin:0 0 10px;font-size:16px}
+.tick{width:56px;height:56px;border-radius:50%;background:var(--teal-pale);color:var(--teal-dark);display:flex;align-items:center;justify-content:center;font-size:30px;margin-bottom:12px}
+.hp{position:absolute;left:-9999px;top:-9999px;height:0;width:0;overflow:hidden}
+.small{font-size:13.5px;color:var(--muted)}
+@media (min-width:640px){
+  .wrap{padding:22px 20px 64px}
+  .hero{padding:28px 28px 22px}
+  .hero h1{font-size:32px}
+  .card{padding:20px 22px}
+  .legend{grid-template-columns:repeat(4,1fr)}
+  .row .main{display:flex;align-items:center;gap:18px}
+  .row .text{flex:1;min-width:0}
+  .seg{width:400px;flex:none;margin-top:0}
+  .seg.even{grid-template-columns:repeat(4,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="progress" role="status" aria-live="polite">
+  <div class="track"><div class="bar" id="bar"></div></div>
+  <div class="ptext" id="ptext"></div>
+</div>
+
+<main class="wrap" id="app">
+  <header class="hero">
+    <div class="eyebrow">The Oceanfront at Sentosa Cove</div>
+    <h1>Resident Survey 2026</h1>
+    <div class="pills">
+      <span class="pill">About 5 minutes</span>
+      <span class="pill">Anonymous</span>
+      <span class="pill" id="closesPill"></span>
+    </div>
+  </header>
+
+  <section class="card">
+    <h2>Rating scale</h2>
+    <div class="legend">
+      <div class="lg great"><b>Great</b>Working well, keep it as it is</div>
+      <div class="lg ok"><b>OK</b>Acceptable as it is</div>
+      <div class="lg attn"><b>Bad</b>Should be fixed or improved</div>
+      <div class="lg na"><b>N/A</b>I do not use it or cannot say</div>
+    </div>
+  </section>
+
+  <div id="sections"></div>
+
+  <section class="card">
+    <h2>What should be fixed first?</h2>
+    <div class="q">
+      <label class="lbl" for="priorities">Tell us up to three things, most important first.</label>
+      <textarea id="priorities" maxlength="600" rows="3" placeholder="1.&#10;2.&#10;3."></textarea>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Keeping in touch</h2>
+    <div class="q">
+      <span class="lbl">How would you prefer to hear from the council and management?</span>
+      <span class="hint">Choose up to two.</span>
+      <div class="chips" id="comms"></div>
+      <div class="counter" id="commsCount"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Your comments</h2>
+    <div class="q">
+      <label class="lbl" for="workingWell">What is working well and should stay as it is?</label>
+      <textarea id="workingWell" maxlength="1500"></textarea>
+    </div>
+    <div class="q">
+      <label class="lbl" for="anythingElse">Anything else you want the council to know?</label>
+      <textarea id="anythingElse" maxlength="1500"></textarea>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>About you</h2>
+    <p class="blurb">Optional. It helps us see whether an issue is estate-wide or specific to one block.</p>
+    <div class="q">
+      <span class="lbl" id="lblResident">I am</span>
+      <div class="seg even" id="residentType" role="radiogroup" aria-labelledby="lblResident"></div>
+    </div>
+    <div class="q">
+      <label class="lbl" for="block">Block</label>
+      <select id="block">
+        <option value="">Prefer not to say</option>
+        <option>281</option><option>283</option><option>285</option><option>287</option><option>289</option>
+        <option>291</option><option>293</option><option>295</option><option>297</option>
+      </select>
+    </div>
+    <div class="q">
+      <span class="lbl" id="lblTenure">How long have you been at Oceanfront?</span>
+      <div class="seg even" id="tenure" role="radiogroup" aria-labelledby="lblTenure"></div>
+    </div>
+    <div class="q">
+      <label class="lbl" for="contact">Want a reply about something you raised?</label>
+      <span class="hint">Leave a unit number or email. Leave it blank and your answers stay anonymous.</span>
+      <input type="text" id="contact" maxlength="120" autocomplete="off" placeholder="Unit number or email (optional)">
+    </div>
+  </section>
+
+  <div class="hp" aria-hidden="true"><label>Website <input type="text" id="website" tabindex="-1" autocomplete="off"></label></div>
+
+  <div class="submitbar">
+    <div class="err" id="err"></div>
+    <button class="btn" id="submit" type="button">Send my answers</button>
+    <div class="fine" id="fine"></div>
+  </div>
+</main>
+
+<div class="thanks" id="thanks" hidden>
+  <div class="card">
+    <div class="tick">&#10003;</div>
+    <h1>Thank you</h1>
+    <p id="thanksMsg">Your answers have been recorded.</p>
+    <p>We will publish a summary of the results and the actions we are taking within four weeks of the survey closing, on iCondo and the lobby screens.</p>
+    <p class="small" id="thanksNote"></p>
+    <p class="small"><a href="#" id="again">Someone else in your household wants to answer? Start a fresh form.</a></p>
+  </div>
+</div>
+
+<script>
+/* ============ CONFIG: edit these before you launch ============ */
+var CONFIG = {
+  version: '2026-09 v3',
+  closes: 'Sunday 11 October 2026',      // shown in the header pill and thank-you page
+  closesShort: 'Closes 11 Oct',
+  endpoint: ''                           // leave blank when hosted on Apps Script. If you host this file elsewhere,
+                                         // paste the Apps Script web app URL here and the page will POST to it.
+};
+/* ============================================================== */
+
+var STORE_KEY = 'oceanfront-survey-2026';
+var DONE_KEY = 'oceanfront-survey-2026-done';
+
+var SCALE = [
+  {v:'Great', c:'great'}, {v:'OK', c:'ok'}, {v:'Bad', c:'attn'}, {v:'N/A', c:'na'}
+];
+
+var OVERALL = [
+  {key:'overall', col:'Overall', label:'Overall, how is living at Oceanfront right now?',
+   opts:[{v:'Great',c:'great'},{v:'OK',c:'ok'},{v:'Bad',c:'attn'}]},
+  {key:'value', col:'Value for money', label:'Value for money from your maintenance fees', opts:SCALE}
+];
+
+var SECTIONS = [
+  {title:'Common areas', blurb:'How they look and how well they are kept.', rows:[
+    ['entrance','Main entrance and driveway'],
+    ['landscaping','Landscaping and gardens'],
+    ['waterfront','Waterfront walkways and seating'],
+    ['lobbies','Lobbies and corridors'],
+    ['lifts_clean','Lift lobbies and lift interiors'],
+    ['carpark','Basement carpark'],
+    ['signal','Mobile signal in the basement carpark'],
+    ['lighting','Lighting at night'],
+    ['building','Building exterior and paintwork']
+  ]},
+  {title:'Facilities', blurb:'Condition and cleanliness. Skip any you do not use.', rows:[
+    ['pool','Swimming pool'],
+    ['loungers','Pool loungers and seating'],
+    ['gym','Gym'],
+    ['function','Function room and BBQ pits'],
+    ['playground','Children’s playground']
+  ]},
+  {title:'Maintenance and services', blurb:'How well each is done.', rows:[
+    ['refuse','Rubbish and recycling collection'],
+    ['pest','Pest control'],
+    ['lifts','Lift reliability'],
+    ['repairs_speed','Common-area repairs: speed'],
+    ['repairs_quality','Common-area repairs: quality'],
+    ['booking','Facility booking']
+  ]},
+  {title:'Safety and security', blurb:'', rows:[
+    ['safe','Feeling safe on the property'],
+    ['guards','Security officers'],
+    ['visitors','Visitor and contractor access'],
+    ['access','Gates, access cards and intercom']
+  ]},
+  {title:'Management and communication', blurb:'', rows:[
+    ['office','Management office staff'],
+    ['reporting','Reporting a problem'],
+    ['updates','Updates and announcements'],
+    ['icondo','iCondo app'],
+    ['noise','Handling of noise and neighbour complaints']
+  ]}
+];
+
+var COMMS = ['iCondo app notifications','WhatsApp','Email','Lobby screens and notice boards','Printed notice in my mailbox'];
+var COMMS_MAX = 2;
+
+var RESIDENT_TYPES = ['Owner, living here','Tenant','Owner, living elsewhere','Prefer not to say'];
+var TENURES = ['Under 1 year','1 to 3 years','3 to 10 years','Over 10 years'];
+
+var state = {ratings:{}, notes:{}, priorities:'', comms:[], workingWell:'', anythingElse:'', residentType:'', block:'', tenure:'', contact:''};
+
+/* ---------- helpers ---------- */
+function el(tag, attrs, children){
+  var e = document.createElement(tag);
+  if (attrs) for (var k in attrs) {
+    if (k === 'class') e.className = attrs[k];
+    else if (k === 'text') e.textContent = attrs[k];
+    else if (k === 'html') e.innerHTML = attrs[k];
+    else e.setAttribute(k, attrs[k]);
+  }
+  (children || []).forEach(function(c){ if (c) e.appendChild(c); });
+  return e;
+}
+function save(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {} }
+function load(){ try { var s = localStorage.getItem(STORE_KEY); if (s) { var o = JSON.parse(s); for (var k in state) if (o[k] != null) state[k] = o[k]; } } catch (e) {} }
+
+var RATED_TOTAL = OVERALL.length + SECTIONS.reduce(function(n,s){ return n + s.rows.length; }, 0);
+function ratedCount(){ var n = 0; for (var k in state.ratings) if (state.ratings[k]) n++; return n; }
+function updateProgress(){
+  var n = ratedCount();
+  document.getElementById('bar').style.width = Math.round(100 * n / RATED_TOTAL) + '%';
+  document.getElementById('ptext').textContent = n + ' of ' + RATED_TOTAL + ' answered';
+  document.getElementById('fine').textContent = n === RATED_TOTAL ? 'All items answered. Thank you.' : ('You have answered ' + n + ' of ' + RATED_TOTAL + ' items. Unanswered items are fine to leave.');
+}
+
+/* ---------- segmented control ---------- */
+function makeSeg(key, opts, extraClass, onChange){
+  var seg = el('div', {class:'seg ' + (extraClass || ''), role:'radiogroup', 'data-key':key});
+  opts.forEach(function(o){
+    var b = el('button', {type:'button', role:'radio', 'aria-checked':'false', class:o.c, text:o.v, 'data-v':o.v});
+    b.addEventListener('click', function(){
+      state.ratings[key] = o.v;
+      seg.querySelectorAll('button').forEach(function(x){ x.setAttribute('aria-checked', x === b ? 'true' : 'false'); });
+      save(); updateProgress(); if (onChange) onChange(o.v);
+    });
+    seg.appendChild(b);
+  });
+  return seg;
+}
+function setSeg(seg, v){
+  seg.querySelectorAll('button').forEach(function(x){ x.setAttribute('aria-checked', x.getAttribute('data-v') === v ? 'true' : 'false'); });
+}
+
+/* ---------- rating rows ---------- */
+function makeRow(q){
+  var key = q.key, note;
+  var text = el('span', {class:'text'}, [
+    el('span', {class:'lbl', id:'lbl-' + key, text:q.label}),
+    q.hint ? el('span', {class:'hint', text:q.hint}) : null
+  ]);
+  var seg = makeSeg(key, q.opts || SCALE, q.even ? 'even' : (q.opts && q.opts.length === 3 ? 'n3' : ''), function(v){
+    if (note) note.classList.toggle('show', v === 'Bad');
+  });
+  seg.setAttribute('aria-labelledby', 'lbl-' + key);
+  var row = el('div', {class:'row'}, [ el('div', {class:'main'}, [text, seg]) ]);
+  if (q.notable) {
+    var inp = el('input', {type:'text', maxlength:'200', placeholder:'What is the problem? (optional)', 'aria-label':'Note on ' + q.label});
+    inp.addEventListener('input', function(){ state.notes[key] = inp.value; save(); });
+    note = el('div', {class:'note'}, [inp]);
+    row.appendChild(note);
+    if (state.notes[key]) inp.value = state.notes[key];
+  }
+  if (state.ratings[key]) { setSeg(seg, state.ratings[key]); if (note && state.ratings[key] === 'Bad') note.classList.add('show'); }
+  return row;
+}
+
+function renderSections(){
+  var host = document.getElementById('sections');
+  var ov = el('section', {class:'card'}, [ el('h2', {text:'Overall'}), el('p', {class:'blurb', text:'Two quick questions before the detail.'}) ]);
+  OVERALL.forEach(function(q){ ov.appendChild(makeRow({key:q.key, label:q.label, opts:q.opts, even:q.even})); });
+  host.appendChild(ov);
+  SECTIONS.forEach(function(s){
+    var card = el('section', {class:'card'}, [ el('h2', {text:s.title}), s.blurb ? el('p', {class:'blurb', text:s.blurb}) : null ]);
+    s.rows.forEach(function(r){ card.appendChild(makeRow({key:r[0], label:r[1], hint:r[2], notable:true})); });
+    host.appendChild(card);
+  });
+}
+
+/* ---------- chips ---------- */
+function renderChips(hostId, items, listKey, max, counterId, onChange){
+  var host = document.getElementById(hostId), counter = document.getElementById(counterId);
+  function refresh(){
+    var n = state[listKey].length;
+    host.classList.toggle('maxed', n >= max);
+    counter.textContent = n + ' of ' + max + ' chosen';
+    if (onChange) onChange();
+  }
+  items.forEach(function(name){
+    var cb = el('input', {type:'checkbox', value:name});
+    if (state[listKey].indexOf(name) !== -1) cb.checked = true;
+    cb.addEventListener('change', function(){
+      var list = state[listKey];
+      if (cb.checked) {
+        if (list.length >= max) { cb.checked = false; return; }
+        list.push(name);
+      } else {
+        var i = list.indexOf(name); if (i !== -1) list.splice(i, 1);
+      }
+      save(); refresh();
+    });
+    host.appendChild(el('label', {class:'chip'}, [cb, el('span', {text:name})]));
+  });
+  refresh();
+}
+
+/* ---------- text and select fields ---------- */
+function bindText(id, key){
+  var f = document.getElementById(id);
+  if (state[key]) f.value = state[key];
+  f.addEventListener('input', function(){ state[key] = f.value; save(); });
+}
+function bindChoice(id, key, options){
+  var host = document.getElementById(id);
+  options.forEach(function(v){
+    var b = el('button', {type:'button', role:'radio', 'aria-checked': state[key] === v ? 'true' : 'false', text:v, 'data-v':v, class:'ok'});
+    b.addEventListener('click', function(){
+      state[key] = v;
+      host.querySelectorAll('button').forEach(function(x){ x.setAttribute('aria-checked', x === b ? 'true' : 'false'); });
+      save();
+    });
+    host.appendChild(b);
+  });
+}
+
+/* ---------- payload ---------- */
+function isMobile(){ return Math.min(window.innerWidth, window.innerHeight) < 700 ? 'Phone or tablet' : 'Computer'; }
+function buildPayload(){
+  var columns = [], row = {};
+  function add(col, val){ columns.push(col); row[col] = Array.isArray(val) ? val.join('; ') : (val == null ? '' : String(val)); }
+  OVERALL.forEach(function(q){ add(q.col, state.ratings[q.key] || ''); });
+  SECTIONS.forEach(function(s){ s.rows.forEach(function(r){
+    var col = r[3] || r[1];
+    add(col, state.ratings[r[0]] || '');
+    add(col + ', note', (state.notes[r[0]] || '').trim());
+  }); });
+  add('What should be fixed first', state.priorities.trim());
+  add('Preferred channels', state.comms);
+  add('What is working well', state.workingWell.trim());
+  add('Anything else', state.anythingElse.trim());
+  add('Resident type', state.residentType);
+  add('Block', state.block);
+  add('Time at Oceanfront', state.tenure);
+  add('Follow-up contact', state.contact.trim());
+  add('Device', isMobile());
+  add('Survey version', CONFIG.version);
+  return {columns: columns, row: row};
+}
+
+/* ---------- submit ---------- */
+function showThanks(note){
+  document.getElementById('app').hidden = true;
+  document.querySelector('.progress').style.display = 'none';
+  var t = document.getElementById('thanks'); t.hidden = false;
+  document.getElementById('thanksNote').textContent = note || '';
+  window.scrollTo(0, 0);
+}
+function markDone(){ try { localStorage.setItem(DONE_KEY, '1'); localStorage.removeItem(STORE_KEY); } catch (e) {} }
+function submit(){
+  var btn = document.getElementById('submit'), err = document.getElementById('err');
+  err.classList.remove('show');
+  if (document.getElementById('website').value) { markDone(); showThanks(''); return; }   // bot trap
+  if (ratedCount() === 0 && !state.priorities.trim() && !state.workingWell.trim() && !state.anythingElse.trim()) {
+    err.textContent = 'Please answer at least one question before sending.'; err.classList.add('show');
+    err.scrollIntoView({behavior:'smooth', block:'center'}); return;
+  }
+  var payload = buildPayload();
+  btn.disabled = true; btn.textContent = 'Sending…';
+  function ok(){ markDone(); showThanks(''); }
+  function fail(e){
+    btn.disabled = false; btn.textContent = 'Send my answers';
+    err.textContent = 'Sorry, that did not send. Please check your connection and try again. Your answers are saved on this device.'; err.classList.add('show');
+    if (window.console) console.error(e);
+  }
+  if (window.google && google.script && google.script.run) {
+    google.script.run.withSuccessHandler(function(res){ if (res && res.ok) ok(); else fail(res); }).withFailureHandler(fail).submitSurvey(payload);
+  } else if (CONFIG.endpoint) {
+    fetch(CONFIG.endpoint, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload)})
+      .then(function(){ ok(); }).catch(fail);
+  } else {
+    if (window.console) console.log('Survey payload (preview mode, not sent):', payload);
+    markDone(); showThanks('Preview mode: this copy of the page is not connected to a response sheet, so nothing was sent.');
+  }
+}
+
+/* ---------- init ---------- */
+(function init(){
+  load();
+  document.getElementById('closesPill').textContent = CONFIG.closesShort;
+  renderSections();
+  renderChips('comms', COMMS, 'comms', COMMS_MAX, 'commsCount');
+  bindText('priorities', 'priorities');
+  bindText('workingWell', 'workingWell');
+  bindText('anythingElse', 'anythingElse');
+  bindText('contact', 'contact');
+  bindText('block', 'block');
+  bindChoice('residentType', 'residentType', RESIDENT_TYPES);
+  bindChoice('tenure', 'tenure', TENURES);
+  updateProgress();
+  document.getElementById('submit').addEventListener('click', submit);
+  document.getElementById('again').addEventListener('click', function(ev){
+    ev.preventDefault();
+    try { localStorage.removeItem(DONE_KEY); localStorage.removeItem(STORE_KEY); } catch (e) {}
+    location.reload();
+  });
+  var done = false; try { done = localStorage.getItem(DONE_KEY) === '1'; } catch (e) {}
+  if (done) { document.getElementById('thanksMsg').textContent = 'This device has already sent a response.'; showThanks(''); }
+})();
+</script>
+</body>
+</html>

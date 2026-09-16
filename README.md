@@ -52,6 +52,12 @@ recreates the stack. The workflow is **gated on secrets** — it skips cleanly
 until `TS_OAUTH_CLIENT_ID`, `HETZNER_HOST`, `HETZNER_USER`, `HETZNER_SSH_KEY`
 are set on the repo.
 
+## Static pages
+
+`/survey/` serves the static Oceanfront resident survey from `survey/index.html`
+(mounted read-only at `/srv/survey`). It is public by design: a Cloudflare Access
+bypass policy for `kavinb.com/survey` is required, or visitors hit the Access login.
+
 ## Add / change a route
 
 1. Edit `Caddyfile` (add a `handle_path /thing/* { reverse_proxy thing_api:8000 }`
