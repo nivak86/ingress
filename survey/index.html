@@ -72,6 +72,13 @@ textarea:focus,select:focus,input[type=text]:focus,input[type=email]:focus{outli
 .q .lbl{display:block;font-weight:600;margin-bottom:6px}
 .q .hint{display:block;color:var(--muted);font-size:13.5px;margin:-4px 0 6px}
 .q .seg{margin-top:0}
+.list .item{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.item .num{width:26px;height:26px;border-radius:50%;background:var(--teal-pale);color:var(--teal-dark);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex:none}
+.item input{flex:1;min-width:0}
+.item .rm{appearance:none;-webkit-appearance:none;border:1.5px solid var(--line);background:#fff;border-radius:10px;width:44px;height:46px;font-size:22px;line-height:1;color:var(--muted);cursor:pointer;flex:none;touch-action:manipulation}
+.addbtn{appearance:none;-webkit-appearance:none;border:1.5px dashed var(--teal);background:var(--teal-pale);color:var(--teal-dark);border-radius:10px;padding:10px 14px;font:inherit;font-size:15px;font-weight:600;cursor:pointer;touch-action:manipulation;margin-top:2px}
+.addbtn[hidden]{display:none}
+.two{display:grid;gap:8px}
 .submitbar{margin-top:6px}
 .btn{width:100%;appearance:none;border:0;border-radius:12px;background:var(--teal);color:#fff;font:inherit;font-size:17px;font-weight:700;padding:15px;cursor:pointer;touch-action:manipulation}
 .btn:hover{background:var(--teal-dark)}
@@ -96,6 +103,7 @@ textarea:focus,select:focus,input[type=text]:focus,input[type=email]:focus{outli
   .row .text{flex:1;min-width:0}
   .seg{width:400px;flex:none;margin-top:0}
   .seg.even{grid-template-columns:repeat(4,1fr)}
+  .two{grid-template-columns:1fr 1.4fr}
 }
 </style>
 </head>
@@ -111,8 +119,6 @@ textarea:focus,select:focus,input[type=text]:focus,input[type=email]:focus{outli
     <h1>Resident Survey 2026</h1>
     <div class="pills">
       <span class="pill">About 5 minutes</span>
-      <span class="pill">Anonymous</span>
-      <span class="pill" id="closesPill"></span>
     </div>
   </header>
 
@@ -131,15 +137,16 @@ textarea:focus,select:focus,input[type=text]:focus,input[type=email]:focus{outli
   <section class="card">
     <h2>What should be fixed first?</h2>
     <div class="q">
-      <label class="lbl" for="priorities">Tell us up to three things, most important first.</label>
-      <textarea id="priorities" maxlength="600" rows="3" placeholder="1.&#10;2.&#10;3."></textarea>
+      <span class="lbl" id="lblPrio">Up to three things, most important first.</span>
+      <div class="list" id="prioList" aria-labelledby="lblPrio"></div>
+      <button type="button" class="addbtn" id="prioAdd">+ Add another</button>
     </div>
   </section>
 
   <section class="card">
     <h2>Keeping in touch</h2>
     <div class="q">
-      <span class="lbl">How would you prefer to hear from the council and management?</span>
+      <span class="lbl">How would you prefer to hear from management?</span>
       <span class="hint">Choose up to two.</span>
       <div class="chips" id="comms"></div>
       <div class="counter" id="commsCount"></div>
@@ -153,7 +160,7 @@ textarea:focus,select:focus,input[type=text]:focus,input[type=email]:focus{outli
       <textarea id="workingWell" maxlength="1500"></textarea>
     </div>
     <div class="q">
-      <label class="lbl" for="anythingElse">Anything else you want the council to know?</label>
+      <label class="lbl" for="anythingElse">Anything else you want management to know?</label>
       <textarea id="anythingElse" maxlength="1500"></textarea>
     </div>
   </section>
@@ -178,9 +185,12 @@ textarea:focus,select:focus,input[type=text]:focus,input[type=email]:focus{outli
       <div class="seg even" id="tenure" role="radiogroup" aria-labelledby="lblTenure"></div>
     </div>
     <div class="q">
-      <label class="lbl" for="contact">Want a reply about something you raised?</label>
-      <span class="hint">Leave a unit number or email. Leave it blank and your answers stay anonymous.</span>
-      <input type="text" id="contact" maxlength="120" autocomplete="off" placeholder="Unit number or email (optional)">
+      <span class="lbl">Want a reply about something you raised?</span>
+      <span class="hint">Leave your unit number and email. Leave them blank and your answers stay anonymous.</span>
+      <div class="two">
+        <input type="text" id="contactUnit" maxlength="40" autocomplete="off" placeholder="Unit number" aria-label="Unit number for follow-up">
+        <input type="email" id="contactEmail" maxlength="120" autocomplete="email" placeholder="Email" aria-label="Email for follow-up">
+      </div>
     </div>
   </section>
 
@@ -207,9 +217,7 @@ textarea:focus,select:focus,input[type=text]:focus,input[type=email]:focus{outli
 <script>
 /* ============ CONFIG: edit these before you launch ============ */
 var CONFIG = {
-  version: '2026-09 v3',
-  closes: 'Sunday 11 October 2026',      // shown in the header pill and thank-you page
-  closesShort: 'Closes 11 Oct',
+  version: '2026-09 v4',
   endpoint: ''                           // leave blank when hosted on Apps Script. If you host this file elsewhere,
                                          // paste the Apps Script web app URL here and the page will POST to it.
 };
@@ -229,7 +237,7 @@ var OVERALL = [
 ];
 
 var SECTIONS = [
-  {title:'Common areas', blurb:'How they look and how well they are kept.', rows:[
+  {title:'Common areas', blurb:'How each area looks and how well it is kept.', rows:[
     ['entrance','Main entrance and driveway'],
     ['landscaping','Landscaping and gardens'],
     ['waterfront','Waterfront walkways and seating'],
@@ -240,14 +248,14 @@ var SECTIONS = [
     ['lighting','Lighting at night'],
     ['building','Building exterior and paintwork']
   ]},
-  {title:'Facilities', blurb:'Condition and cleanliness. Skip any you do not use.', rows:[
+  {title:'Facilities', blurb:'Rate each for condition and cleanliness. Skip anything you do not use.', rows:[
     ['pool','Swimming pool'],
     ['loungers','Pool loungers and seating'],
     ['gym','Gym'],
     ['function','Function room and BBQ pits'],
     ['playground','Children’s playground']
   ]},
-  {title:'Maintenance and services', blurb:'How well each is done.', rows:[
+  {title:'Maintenance and services', blurb:'How well are these being handled?', rows:[
     ['refuse','Rubbish and recycling collection'],
     ['pest','Pest control'],
     ['lifts','Lift reliability'],
@@ -276,7 +284,8 @@ var COMMS_MAX = 2;
 var RESIDENT_TYPES = ['Owner, living here','Tenant','Owner, living elsewhere','Prefer not to say'];
 var TENURES = ['Under 1 year','1 to 3 years','3 to 10 years','Over 10 years'];
 
-var state = {ratings:{}, notes:{}, priorities:'', comms:[], workingWell:'', anythingElse:'', residentType:'', block:'', tenure:'', contact:''};
+var PRIO_MAX = 3;
+var state = {ratings:{}, notes:{}, priorities:[''], comms:[], workingWell:'', anythingElse:'', residentType:'', block:'', tenure:'', contactUnit:'', contactEmail:''};
 
 /* ---------- helpers ---------- */
 function el(tag, attrs, children){
@@ -291,7 +300,9 @@ function el(tag, attrs, children){
   return e;
 }
 function save(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {} }
-function load(){ try { var s = localStorage.getItem(STORE_KEY); if (s) { var o = JSON.parse(s); for (var k in state) if (o[k] != null) state[k] = o[k]; } } catch (e) {} }
+function load(){ try { var s = localStorage.getItem(STORE_KEY); if (s) { var o = JSON.parse(s); for (var k in state) if (o[k] != null) state[k] = o[k]; } } catch (e) {}
+  if (typeof state.priorities === 'string') state.priorities = [state.priorities];
+  if (!Array.isArray(state.priorities) || !state.priorities.length) state.priorities = ['']; }
 
 var RATED_TOTAL = OVERALL.length + SECTIONS.reduce(function(n,s){ return n + s.rows.length; }, 0);
 function ratedCount(){ var n = 0; for (var k in state.ratings) if (state.ratings[k]) n++; return n; }
@@ -345,7 +356,7 @@ function makeRow(q){
 
 function renderSections(){
   var host = document.getElementById('sections');
-  var ov = el('section', {class:'card'}, [ el('h2', {text:'Overall'}), el('p', {class:'blurb', text:'Two quick questions before the detail.'}) ]);
+  var ov = el('section', {class:'card'});
   OVERALL.forEach(function(q){ ov.appendChild(makeRow({key:q.key, label:q.label, opts:q.opts, even:q.even})); });
   host.appendChild(ov);
   SECTIONS.forEach(function(s){
@@ -401,6 +412,25 @@ function bindChoice(id, key, options){
   });
 }
 
+/* ---------- fixed-first list: one item per box ---------- */
+function renderPrio(){
+  var host = document.getElementById('prioList'), add = document.getElementById('prioAdd');
+  host.innerHTML = '';
+  state.priorities.forEach(function(val, i){
+    var inp = el('input', {type:'text', maxlength:'160', placeholder: i === 0 ? 'Most important' : 'Next', 'aria-label':'Fix first, item ' + (i + 1)});
+    inp.value = val;
+    inp.addEventListener('input', function(){ state.priorities[i] = inp.value; save(); });
+    var item = el('div', {class:'item'}, [ el('span', {class:'num', text:String(i + 1)}), inp ]);
+    if (state.priorities.length > 1) {
+      var rm = el('button', {type:'button', class:'rm', 'aria-label':'Remove item ' + (i + 1), text:'\u00d7'});
+      rm.addEventListener('click', function(){ state.priorities.splice(i, 1); save(); renderPrio(); });
+      item.appendChild(rm);
+    }
+    host.appendChild(item);
+  });
+  add.hidden = state.priorities.length >= PRIO_MAX;
+}
+
 /* ---------- payload ---------- */
 function isMobile(){ return Math.min(window.innerWidth, window.innerHeight) < 700 ? 'Phone or tablet' : 'Computer'; }
 function buildPayload(){
@@ -412,14 +442,15 @@ function buildPayload(){
     add(col, state.ratings[r[0]] || '');
     add(col + ', note', (state.notes[r[0]] || '').trim());
   }); });
-  add('What should be fixed first', state.priorities.trim());
+  for (var i = 0; i < PRIO_MAX; i++) add('Fix first (' + (i + 1) + ')', (state.priorities[i] || '').trim());
   add('Preferred channels', state.comms);
   add('What is working well', state.workingWell.trim());
   add('Anything else', state.anythingElse.trim());
   add('Resident type', state.residentType);
   add('Block', state.block);
   add('Time at Oceanfront', state.tenure);
-  add('Follow-up contact', state.contact.trim());
+  add('Follow-up unit', state.contactUnit.trim());
+  add('Follow-up email', state.contactEmail.trim());
   add('Device', isMobile());
   add('Survey version', CONFIG.version);
   return {columns: columns, row: row};
@@ -438,7 +469,7 @@ function submit(){
   var btn = document.getElementById('submit'), err = document.getElementById('err');
   err.classList.remove('show');
   if (document.getElementById('website').value) { markDone(); showThanks(''); return; }   // bot trap
-  if (ratedCount() === 0 && !state.priorities.trim() && !state.workingWell.trim() && !state.anythingElse.trim()) {
+  if (ratedCount() === 0 && !state.priorities.some(function(x){ return x.trim(); }) && !state.workingWell.trim() && !state.anythingElse.trim()) {
     err.textContent = 'Please answer at least one question before sending.'; err.classList.add('show');
     err.scrollIntoView({behavior:'smooth', block:'center'}); return;
   }
@@ -464,13 +495,16 @@ function submit(){
 /* ---------- init ---------- */
 (function init(){
   load();
-  document.getElementById('closesPill').textContent = CONFIG.closesShort;
   renderSections();
   renderChips('comms', COMMS, 'comms', COMMS_MAX, 'commsCount');
-  bindText('priorities', 'priorities');
+  renderPrio();
+  document.getElementById('prioAdd').addEventListener('click', function(){
+    if (state.priorities.length < PRIO_MAX) { state.priorities.push(''); save(); renderPrio(); var ins = document.querySelectorAll('#prioList input'); ins[ins.length - 1].focus(); }
+  });
   bindText('workingWell', 'workingWell');
   bindText('anythingElse', 'anythingElse');
-  bindText('contact', 'contact');
+  bindText('contactUnit', 'contactUnit');
+  bindText('contactEmail', 'contactEmail');
   bindText('block', 'block');
   bindChoice('residentType', 'residentType', RESIDENT_TYPES);
   bindChoice('tenure', 'tenure', TENURES);
