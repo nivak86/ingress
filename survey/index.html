@@ -212,14 +212,16 @@ textarea:focus,select:focus,input[type=text]:focus,input[type=email]:focus,input
     <p id="thanksMsg">Your answers have been recorded.</p>
     <p>We will publish a summary of the results and the actions we are taking within four weeks of the survey closing, on iCondo and the lobby screens.</p>
     <p class="small" id="thanksNote"></p>
-    <p class="small"><a href="#" id="again">Someone else in your household wants to answer? Start a fresh form.</a></p>
+    <p class="small"><a href="#" id="again">Fill in another response.</a></p>
   </div>
 </div>
 
 <script>
 /* ============ CONFIG: edit these before you launch ============ */
 var CONFIG = {
-  version: '2026-09 v4',
+  version: '2026-09 v5',
+  remember: false,                       // false: every visit starts with a blank form. true: keep a draft on the
+                                         // device and show a thank-you page again after a response has been sent.
   endpoint: ''                           // leave blank when hosted on Apps Script. If you host this file elsewhere,
                                          // paste the Apps Script web app URL here and the page will POST to it.
 };
@@ -301,8 +303,10 @@ function el(tag, attrs, children){
   (children || []).forEach(function(c){ if (c) e.appendChild(c); });
   return e;
 }
-function save(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {} }
-function load(){ try { var s = localStorage.getItem(STORE_KEY); if (s) { var o = JSON.parse(s); for (var k in state) if (o[k] != null) state[k] = o[k]; } } catch (e) {}
+function save(){ if (!CONFIG.remember) return; try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {} }
+function load(){
+  if (!CONFIG.remember) { try { localStorage.removeItem(STORE_KEY); localStorage.removeItem(DONE_KEY); } catch (e) {} }
+  else { try { var s = localStorage.getItem(STORE_KEY); if (s) { var o = JSON.parse(s); for (var k in state) if (o[k] != null) state[k] = o[k]; } } catch (e) {} }
   if (typeof state.priorities === 'string') state.priorities = [state.priorities];
   if (!Array.isArray(state.priorities) || !state.priorities.length) state.priorities = ['']; }
 
@@ -467,7 +471,7 @@ function showThanks(note){
   document.getElementById('thanksNote').textContent = note || '';
   window.scrollTo(0, 0);
 }
-function markDone(){ try { localStorage.setItem(DONE_KEY, '1'); localStorage.removeItem(STORE_KEY); } catch (e) {} }
+function markDone(){ try { localStorage.removeItem(STORE_KEY); if (CONFIG.remember) localStorage.setItem(DONE_KEY, '1'); } catch (e) {} }
 function submit(){
   var btn = document.getElementById('submit'), err = document.getElementById('err');
   err.classList.remove('show');
@@ -519,7 +523,7 @@ function submit(){
     try { localStorage.removeItem(DONE_KEY); localStorage.removeItem(STORE_KEY); } catch (e) {}
     location.reload();
   });
-  var done = false; try { done = localStorage.getItem(DONE_KEY) === '1'; } catch (e) {}
+  var done = false; if (CONFIG.remember) { try { done = localStorage.getItem(DONE_KEY) === '1'; } catch (e) {} }
   if (done) { document.getElementById('thanksMsg').textContent = 'This device has already sent a response.'; showThanks(''); }
 })();
 </script>
