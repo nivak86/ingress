@@ -46,6 +46,12 @@ docker compose up -d            # recreate changed containers
 docker compose logs -f cloudflared   # watch the tunnel reconnect
 ```
 
+**Caddyfile changes need a recreate.** The Caddyfile is a single-file bind mount, and `git pull`
+replaces the file, so the running container keeps reading the old copy: `caddy reload` and a plain
+`docker compose up -d` both leave the old routes in place. After pulling a Caddyfile change run
+`docker compose up -d --force-recreate caddy` (a few seconds of downtime for every route), then
+check `docker compose exec caddy grep <something new> /etc/caddy/Caddyfile`.
+
 **CI:** pushing to `main` runs `.github/workflows/deploy.yml`, which joins the
 tailnet, rsyncs the config to the box (never touching `.env`), validates, and
 recreates the stack. The workflow is **gated on secrets** — it skips cleanly
