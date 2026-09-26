@@ -60,6 +60,11 @@ are set on the repo.
 
 ## Static pages
 
+**oceanfrontsurvey.com** (and www, redirected to the apex) is served by this stack too: a tunnel
+public hostname points it at `caddy:80`, and the `http://oceanfrontsurvey.com` site maps every path
+into the survey app's `/public/*` tree. No Access app covers that hostname, so the survey is open to
+anyone. `kavinb.com/survey` and `/survey/` redirect there.
+
 `/survey/` and `/survey-admin/` go to `survey_api:8000`, the Oceanfront resident survey app
 (`nivak86/oceanfront-survey`, deployed at `/opt/survey`). Caddy rewrites `/survey/*` to the
 app's `/public/*` tree and strips `Cf-Access-Authenticated-User-Email` there; `/survey-admin/*`

@@ -14,7 +14,8 @@ http://kavinb.com, http://www.kavinb.com {
 	redir /workout /workout/ 308
 	redir /health /health/ 308
 	redir /trade /trade/ 308
-	redir /survey /survey/ 308
+	redir /survey https://oceanfrontsurvey.com/ 308
+	redir /survey/ https://oceanfrontsurvey.com/ 308
 	redir /survey-admin /survey-admin/ 308
 	handle_path /money/* {
 		reverse_proxy money_api:8000
@@ -48,6 +49,26 @@ http://kavinb.com, http://www.kavinb.com {
 	}
 }
 
+# ── oceanfrontsurvey.com (public) ───────────────────────────────────────────
+# Reached only through the Cloudflare tunnel. No Cloudflare Access app covers this
+# hostname: the survey is open to anyone. Everything maps into the app's /public/
+# tree, so the admin tree cannot be reached from here, and the identity header is
+# stripped. The results dashboard stays at kavinb.com/survey-admin/.
+http://www.oceanfrontsurvey.com {
+	redir https://oceanfrontsurvey.com{uri} 308
+}
+http://oceanfrontsurvey.com {
+	encode zstd gzip
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		X-Frame-Options DENY
+	}
+	request_header -Cf-Access-Authenticated-User-Email
+	rewrite * /public{uri}
+	reverse_proxy survey_api:8000
+}
+
 # On the tailnet, this listener owns kavinb.com directly (split-DNS points the
 # name at the box's tailnet IP). Cloudflare is not in front here, so we assert
 # the authenticated identity ourselves. header_up SETS the value, replacing any
@@ -67,7 +88,8 @@ https://kavinb.com, https://www.kavinb.com {
 	redir /workout /workout/ 308
 	redir /health /health/ 308
 	redir /trade /trade/ 308
-	redir /survey /survey/ 308
+	redir /survey https://oceanfrontsurvey.com/ 308
+	redir /survey/ https://oceanfrontsurvey.com/ 308
 	redir /survey-admin /survey-admin/ 308
 	handle_path /money/* {
 		reverse_proxy money_api:8000 {
