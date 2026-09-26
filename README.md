@@ -54,9 +54,14 @@ are set on the repo.
 
 ## Static pages
 
-`/survey/` serves the static Oceanfront resident survey from `survey/index.html`
-(mounted read-only at `/srv/survey`). It is public by design: a Cloudflare Access
-bypass policy for `kavinb.com/survey` is required, or visitors hit the Access login.
+`/survey/` and `/survey-admin/` go to `survey_api:8000`, the Oceanfront resident survey app
+(`nivak86/oceanfront-survey`, deployed at `/opt/survey`). Caddy rewrites `/survey/*` to the
+app's `/public/*` tree and strips `Cf-Access-Authenticated-User-Email` there; `/survey-admin/*`
+goes to `/admin/*`, which requires that header. `/survey` must keep its Cloudflare Access
+bypass policy (it is public by design); `/survey-admin` stays behind Access.
+
+The old static copy is gone; `survey/` only holds a pointer. Its read-only mount in
+`compose.yml` is unused and can be dropped the next time the caddy container is recreated.
 
 ## Add / change a route
 

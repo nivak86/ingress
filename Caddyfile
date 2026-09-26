@@ -15,6 +15,7 @@ http://kavinb.com, http://www.kavinb.com {
 	redir /health /health/ 308
 	redir /trade /trade/ 308
 	redir /survey /survey/ 308
+	redir /survey-admin /survey-admin/ 308
 	handle_path /money/* {
 		reverse_proxy money_api:8000
 	}
@@ -30,9 +31,17 @@ http://kavinb.com, http://www.kavinb.com {
 	handle_path /trade/* {
 		reverse_proxy trade_web:80
 	}
+	# Oceanfront survey (nivak86/oceanfront-survey). The page and its submit endpoint are public
+	# (Access bypass on kavinb.com/survey); the identity header is stripped so nothing on this route
+	# can pass as signed in. The dashboard sits behind Access at /survey-admin.
 	handle_path /survey/* {
-		root * /srv/survey
-		file_server
+		request_header -Cf-Access-Authenticated-User-Email
+		rewrite * /public{uri}
+		reverse_proxy survey_api:8000
+	}
+	handle_path /survey-admin/* {
+		rewrite * /admin{uri}
+		reverse_proxy survey_api:8000
 	}
 	handle {
 		respond "kavinb.com online. Money is at /money. Workout is at /workout. Health is at /health." 200
@@ -59,6 +68,7 @@ https://kavinb.com, https://www.kavinb.com {
 	redir /health /health/ 308
 	redir /trade /trade/ 308
 	redir /survey /survey/ 308
+	redir /survey-admin /survey-admin/ 308
 	handle_path /money/* {
 		reverse_proxy money_api:8000 {
 			import tailnet_identity
@@ -83,8 +93,15 @@ https://kavinb.com, https://www.kavinb.com {
 		reverse_proxy trade_web:80
 	}
 	handle_path /survey/* {
-		root * /srv/survey
-		file_server
+		request_header -Cf-Access-Authenticated-User-Email
+		rewrite * /public{uri}
+		reverse_proxy survey_api:8000
+	}
+	handle_path /survey-admin/* {
+		rewrite * /admin{uri}
+		reverse_proxy survey_api:8000 {
+			import tailnet_identity
+		}
 	}
 	handle {
 		respond "kavinb.com online (tailnet, auto-authenticated)." 200
