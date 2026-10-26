@@ -100,6 +100,9 @@ https://kavinb.com, https://www.kavinb.com {
 	handle_path /money/* {
 		reverse_proxy money_api:8000 {
 			import tailnet_identity
+			# Money takes the identity above only with this secret beside it (MONEY_ACCESS_VERIFY,
+			# kavinb-money docs/lock.md). Only on Money's route, so no other app sees it.
+			header_up X-Money-Proxy-Secret {env.MONEY_TAILNET_PROXY_SECRET}
 		}
 	}
 	# Workout was folded into Health (Lift) on 2026-10-18; old links land there
