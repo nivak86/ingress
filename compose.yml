@@ -1,7 +1,7 @@
 name: ingress
 services:
   cloudflared:
-    image: cloudflare/cloudflared:latest
+    image: cloudflare/cloudflared:2026.10.3  # pinned; Cloudflare advisory 27 Oct 2026: 2026.10.2+ drops the weak eMudhra intermediates
     restart: unless-stopped
     command: tunnel --no-autoupdate run
     environment:
