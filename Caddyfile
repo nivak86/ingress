@@ -11,21 +11,28 @@
 http://kavinb.com, http://www.kavinb.com {
 	encode zstd gzip
 	redir /money /money/ 308
-	redir /workout /workout/ 308
 	redir /health /health/ 308
 	redir /trade /trade/ 308
 	redir /survey https://oceanfrontsurvey.com/ 308
 	redir /survey/ https://oceanfrontsurvey.com/ 308
 	redir /survey-admin /survey-admin/ 308
+	# Mia (yumeeworld@gmail.com) has her own copy of Health with her own data (health_mia). Her
+	# login only ever reaches that: every other path answers 404 for her. This handle sorts before
+	# the handle_path routes below (Caddy runs handle before handle_path), so it always wins.
+	@mia header_regexp mia Cf-Access-Authenticated-User-Email (?i)^yumeeworld@gmail\.com$
+	handle @mia {
+		handle_path /health/* {
+			reverse_proxy health_mia:8000
+		}
+		handle {
+			respond "Not found" 404
+		}
+	}
 	handle_path /money/* {
 		reverse_proxy money_api:8000
 	}
-	handle_path /workout/api/* {
-		reverse_proxy workout_api:8000
-	}
-	handle_path /workout/* {
-		reverse_proxy workout_api:8000
-	}
+	# Workout was folded into Health (Lift) on 2026-10-18; old links land there
+	redir /workout* /health/lift 302
 	handle_path /health/* {
 		reverse_proxy health_api:8000
 	}
@@ -45,7 +52,7 @@ http://kavinb.com, http://www.kavinb.com {
 		reverse_proxy survey_api:8000
 	}
 	handle {
-		respond "kavinb.com online. Money is at /money. Workout is at /workout. Health is at /health." 200
+		respond "kavinb.com online. Money is at /money. Health (with Lift) is at /health." 200
 	}
 }
 
@@ -85,7 +92,6 @@ https://kavinb.com, https://www.kavinb.com {
 	}
 	encode zstd gzip
 	redir /money /money/ 308
-	redir /workout /workout/ 308
 	redir /health /health/ 308
 	redir /trade /trade/ 308
 	redir /survey https://oceanfrontsurvey.com/ 308
@@ -96,16 +102,8 @@ https://kavinb.com, https://www.kavinb.com {
 			import tailnet_identity
 		}
 	}
-	handle_path /workout/api/* {
-		reverse_proxy workout_api:8000 {
-			import tailnet_identity
-		}
-	}
-	handle_path /workout/* {
-		reverse_proxy workout_api:8000 {
-			import tailnet_identity
-		}
-	}
+	# Workout was folded into Health (Lift) on 2026-10-18; old links land there
+	redir /workout* /health/lift 302
 	handle_path /health/* {
 		reverse_proxy health_api:8000 {
 			import tailnet_identity
