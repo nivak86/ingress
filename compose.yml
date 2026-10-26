@@ -20,6 +20,7 @@ services:
     environment:
       - CF_API_TOKEN=${CF_API_TOKEN}
       - MONEY_TAILNET_PROXY_SECRET=${MONEY_TAILNET_PROXY_SECRET}
+      - HEALTH_TAILNET_PROXY_SECRET=${HEALTH_TAILNET_PROXY_SECRET}
     ports:
       - "100.89.237.0:443:443"
     volumes:

@@ -110,6 +110,9 @@ https://kavinb.com, https://www.kavinb.com {
 	handle_path /health/* {
 		reverse_proxy health_api:8000 {
 			import tailnet_identity
+			# Health takes the identity above only with this secret beside it (HEALTH_ACCESS_VERIFY,
+			# health docs/access.md). Only on Health's route, so no other app sees it.
+			header_up X-Health-Proxy-Secret {env.HEALTH_TAILNET_PROXY_SECRET}
 		}
 	}
 	handle_path /trade/* {
