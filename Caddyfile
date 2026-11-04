@@ -133,3 +133,45 @@ https://kavinb.com, https://www.kavinb.com {
 		respond "kavinb.com online (tailnet, auto-authenticated)." 200
 	}
 }
+
+# ── Rocky's door ─────────────────────────────────────────────────────────────
+# Rocky is not Kavin. The Tailscale policy lets tag:rocky reach this port and not 443,
+# so this is all it can open by web: the read-only endpoints its scripts use.
+# Published on the tailnet IP only (see compose.yml).
+https://kavinb.com:8444 {
+	tls {
+		dns cloudflare {env.CF_API_TOKEN}
+	}
+	encode zstd gzip
+	request_header -Cf-Access-Authenticated-User-Email
+	@health_kavin {
+		method GET
+		path /health/api/ext/widget /health/api/weight /health/api/readiness
+	}
+	handle @health_kavin {
+		uri strip_prefix /health
+		reverse_proxy health_api:8000 {
+			import tailnet_identity
+			header_up X-Health-Proxy-Secret {env.HEALTH_TAILNET_PROXY_SECRET}
+		}
+	}
+	@health_open {
+		method GET
+		path /health/api/health /health/api/integrations/oura/proxy/*
+	}
+	handle @health_open {
+		uri strip_prefix /health
+		reverse_proxy health_api:8000
+	}
+	@money_open {
+		method GET
+		path /money/api/ext/widget /money/api/health
+	}
+	handle @money_open {
+		uri strip_prefix /money
+		reverse_proxy money_api:8000
+	}
+	handle {
+		respond "Not allowed from this device" 403
+	}
+}

@@ -23,6 +23,7 @@ services:
       - HEALTH_TAILNET_PROXY_SECRET=${HEALTH_TAILNET_PROXY_SECRET}
     ports:
       - "100.89.237.0:443:443"
+      - "100.89.237.0:8444:8444"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ./survey:/srv/survey:ro
