@@ -3,6 +3,8 @@
 # edge and dials the tunnel to caddy:80). A redirect here would break it.
 {
 	auto_https disable_redirects
+	# abort runs before every other directive, so the tailnet-only guards below win over redir and handle
+	order abort first
 }
 
 # ── Public path ─────────────────────────────────────────────────────────────
@@ -12,10 +14,6 @@ http://kavinb.com, http://www.kavinb.com {
 	encode zstd gzip
 	redir /money /money/ 308
 	redir /health /health/ 308
-	redir /trade /trade/ 308
-	redir /survey https://oceanfrontsurvey.com/ 308
-	redir /survey/ https://oceanfrontsurvey.com/ 308
-	redir /survey-admin /survey-admin/ 308
 	# Mia (yumeeworld@gmail.com) has her own copy of Health with her own data (health_mia). Her
 	# login only ever reaches that: every other path answers 404 for her. This handle sorts before
 	# the handle_path routes below (Caddy runs handle before handle_path), so it always wins.
@@ -36,44 +34,9 @@ http://kavinb.com, http://www.kavinb.com {
 	handle_path /health/* {
 		reverse_proxy health_api:8000
 	}
-	handle_path /trade/* {
-		reverse_proxy trade_web:80
-	}
-	# Oceanfront survey (nivak86/oceanfront-survey). The page and its submit endpoint are public
-	# (Access bypass on kavinb.com/survey); the identity header is stripped so nothing on this route
-	# can pass as signed in. The dashboard sits behind Access at /survey-admin.
-	handle_path /survey/* {
-		request_header -Cf-Access-Authenticated-User-Email
-		rewrite * /public{uri}
-		reverse_proxy survey_api:8000
-	}
-	handle_path /survey-admin/* {
-		rewrite * /admin{uri}
-		reverse_proxy survey_api:8000
-	}
 	handle {
 		respond "kavinb.com online. Money is at /money. Health (with Lift) is at /health." 200
 	}
-}
-
-# ── oceanfrontsurvey.com (public) ───────────────────────────────────────────
-# Reached only through the Cloudflare tunnel. No Cloudflare Access app covers this
-# hostname: the survey is open to anyone. Everything maps into the app's /public/
-# tree, so the admin tree cannot be reached from here, and the identity header is
-# stripped. The results dashboard stays at kavinb.com/survey-admin/.
-http://www.oceanfrontsurvey.com {
-	redir https://oceanfrontsurvey.com{uri} 308
-}
-http://oceanfrontsurvey.com {
-	encode zstd gzip
-	header {
-		X-Content-Type-Options nosniff
-		Referrer-Policy strict-origin-when-cross-origin
-		X-Frame-Options DENY
-	}
-	request_header -Cf-Access-Authenticated-User-Email
-	rewrite * /public{uri}
-	reverse_proxy survey_api:8000
 }
 
 # On the tailnet, this listener owns kavinb.com directly (split-DNS points the
@@ -90,13 +53,13 @@ https://kavinb.com, https://www.kavinb.com {
 	tls {
 		dns cloudflare {env.CF_API_TOKEN}
 	}
+	# F211, 7 Nov 2026: tailnet clients only. Containers on kavinb-public reach this listener on the
+	# bridge IP and would otherwise get Kavin's identity and the proxy secrets added for them.
+	@offtailnet not remote_ip 100.64.0.0/10 fd7a:115c:a1e0::/48
+	abort @offtailnet
 	encode zstd gzip
 	redir /money /money/ 308
 	redir /health /health/ 308
-	redir /trade /trade/ 308
-	redir /survey https://oceanfrontsurvey.com/ 308
-	redir /survey/ https://oceanfrontsurvey.com/ 308
-	redir /survey-admin /survey-admin/ 308
 	handle_path /money/* {
 		reverse_proxy money_api:8000 {
 			import tailnet_identity
@@ -115,20 +78,6 @@ https://kavinb.com, https://www.kavinb.com {
 			header_up X-Health-Proxy-Secret {env.HEALTH_TAILNET_PROXY_SECRET}
 		}
 	}
-	handle_path /trade/* {
-		reverse_proxy trade_web:80
-	}
-	handle_path /survey/* {
-		request_header -Cf-Access-Authenticated-User-Email
-		rewrite * /public{uri}
-		reverse_proxy survey_api:8000
-	}
-	handle_path /survey-admin/* {
-		rewrite * /admin{uri}
-		reverse_proxy survey_api:8000 {
-			import tailnet_identity
-		}
-	}
 	handle {
 		respond "kavinb.com online (tailnet, auto-authenticated)." 200
 	}
@@ -142,6 +91,10 @@ https://kavinb.com:8444 {
 	tls {
 		dns cloudflare {env.CF_API_TOKEN}
 	}
+	# F211, 7 Nov 2026: tailnet clients only. Containers on kavinb-public reach this listener on the
+	# bridge IP and would otherwise get Kavin's identity and the proxy secrets added for them.
+	@offtailnet not remote_ip 100.64.0.0/10 fd7a:115c:a1e0::/48
+	abort @offtailnet
 	encode zstd gzip
 	request_header -Cf-Access-Authenticated-User-Email
 	@health_kavin {
