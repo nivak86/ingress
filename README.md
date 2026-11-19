@@ -52,11 +52,10 @@ replaces the file, so the running container keeps reading the old copy: `caddy r
 `docker compose up -d --force-recreate caddy` (a few seconds of downtime for every route), then
 check `docker compose exec caddy grep <something new> /etc/caddy/Caddyfile`.
 
-**CI:** pushing to `main` runs `.github/workflows/deploy.yml`, which joins the
-tailnet, rsyncs the config to the box (never touching `.env`), validates, and
-recreates the stack. The workflow is **gated on secrets** — it skips cleanly
-until `TS_OAUTH_CLIENT_ID`, `HETZNER_HOST`, `HETZNER_USER`, `HETZNER_SSH_KEY`
-are set on the repo.
+**No CI deploy.** A push to `main` deploys nothing: this stack is deployed by hand, as above. The old
+GitHub workflow (a hosted runner that joined the tailnet and rsynced the config) never ran its
+steps, because the server secrets it waited for were never set. It was removed on 2026-11-19, with
+the two Tailscale secrets it kept on the repo.
 
 ## Static pages
 

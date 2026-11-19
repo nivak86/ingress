@@ -9,8 +9,8 @@ for kavinb.com — be careful; a bad change here can take all three apps offline
 GitHub `main` (`nivak86/ingress`) is the **source of truth**.
 
 **Deploy model: PULL.** The box (`/opt/ingress` on the kavinb box) is a real **git
-checkout**. It is deployed **manually** (the CI workflow is intentionally gated off — the
-front door changes rarely and is safer deployed by hand):
+checkout**. It is deployed **manually** (there is no CI deploy: the front door changes rarely
+and is safer deployed by hand; a push to `main` deploys nothing):
 
 ```
 ssh kavinb
